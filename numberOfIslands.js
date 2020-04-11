@@ -16,7 +16,8 @@ const buildReferenceArray = function (grid) {
   return arr;
 }
 
-const addIslandNeighborsToQueue = function (curr_pixel, queue, grid, checked) {
+// The purpose of this helper function is to queue a neighboring location if its island and not checked
+const addIslandNeighborsToQueue = function (curr_pixel, queue, grid, visited) {
   let [row, col] = curr_pixel;
   const downRow = row - 1;
   const upRow = row + 1;
@@ -24,42 +25,41 @@ const addIslandNeighborsToQueue = function (curr_pixel, queue, grid, checked) {
   const rightCol = col + 1;
 
   // get the horizontal and vertical neighbors inside the grid
-  if (checked[downRow] && checked[downRow][col] === false && grid[downRow][col] === '1') {
+  if (visited[downRow] && visited[downRow][col] === false && grid[downRow][col] === '1') {
     queue.push([downRow, col]);
-    checked[downRow][col] = true;
+    visited[downRow][col] = true;
   }
-  if (grid[upRow] && checked[upRow][col] === false && grid[upRow][col] === '1') {
+  if (grid[upRow] && visited[upRow][col] === false && grid[upRow][col] === '1') {
     queue.push([upRow, col]);
-    checked[upRow][col] = true;
+    visited[upRow][col] = true;
   }
-  if (checked[row][leftCol] === false && grid[row][leftCol] === '1') {
+  if (visited[row][leftCol] === false && grid[row][leftCol] === '1') {
     queue.push([row, leftCol]);
-    checked[row][leftCol] = true;
+    visited[row][leftCol] = true;
   }
-  if (checked[row][rightCol] === false && grid[row][rightCol] === '1') {
+  if (visited[row][rightCol] === false && grid[row][rightCol] === '1') {
     queue.push([row, rightCol]);
-    checked[row][rightCol] = true;
+    visited[row][rightCol] = true;
   }
 }
 
-const visitIslandNeighbors = function (grid, row, col, visited, checked) {
+// The purpose of this function is to mark every location on the island as visited
+const visitIsland = function (grid, row, col, visited) {
+  // mark current location as visited
+  visited[row][col] = true;
+
   const queue = [];
   queue.push([row, col]);
   while (queue.length !== 0) {
-    let [cur_row, cur_col] = queue.pop(); // [row, col]
+    const [cur_row, cur_col] = queue.pop();
     visited[cur_row][cur_col] = true;
-    addIslandNeighborsToQueue([cur_row, cur_col], queue, grid, checked);
+    addIslandNeighborsToQueue([cur_row, cur_col], queue, grid, visited);
   }
 }
 
-const visitIsland = function (grid, row, col, visited, checked) {
-  visited[row][col] = true;
-  visitIslandNeighbors(grid, row, col, grid, checked);
-}
 
 const numIslands = function (grid) {
   const visited = buildReferenceArray(grid);
-  const checked = buildReferenceArray(grid);
   let totalIslands = 0;
 
   const rowCount = grid.length;
@@ -68,11 +68,17 @@ const numIslands = function (grid) {
   // iterate through islands
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col < colCount; col++) {
-      if (grid[row][col] === '1' && !visited[row][col] && !checked[row][col]) {
-        visitIsland(grid, row, col, visited, checked);
+      if (grid[row][col] === '1' && !visited[row][col]) {
+        visitIsland(grid, row, col, visited);
         totalIslands++;
       }
     }
   }
   return totalIslands;
 };
+
+// Uncomment this to run a test case
+// const grid = [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]
+// const islands = numIslands(grid);
+
+// console.log(`there are ${islands} islands`);
